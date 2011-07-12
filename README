@@ -1,7 +1,7 @@
 
 Notenal v.0.1.5
 
-Simple command-line notetaking & to-do list application.
+Simple command-line notetaking & to-do list application
 
 
     Copyright (C) 2011 sugardrunk <http://sugardrunk.devio.us>
@@ -22,5 +22,6 @@ Simple command-line notetaking & to-do list application.
 
 HOW TO RUN:
 
-    Generate encoded password with './setup.py' and paste it to the main program.
-    Run './notenal.py'
+    ./setup.py # first generate encoded password and then paste it to the main program
+    ./notenal.py
+    

@@ -4,7 +4,7 @@
 
 ## Notenal v.0.1.5
 
-##  Simple command-line notetaking & to-do list application.
+##  Simple command-line notetaking & to-do list application
 ##  Copyright (C) 2011 sugardrunk <http://sugardrunk.devio.us>
 
 

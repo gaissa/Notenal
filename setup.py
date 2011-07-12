@@ -12,13 +12,6 @@ import getpass, sys
 
 print
 password = getpass.getpass ('SET PASSWORD: ')
-encoded_password = password.encode('rot13') 
-
-# write encoded password to file
-##file = open ('./setup_files/pw', 'w')
-##file.write (encoded_password)
-##file.close()
-
-print '\n''ENCODED PASSWORD:', (encoded_password), '\n''\n'
-
+encoded_password = password.encode('rot13')
+print ('\n')('ENCODED PASSWORD:'), (encoded_password), ('\n''\n')
 sys.exit(0)
