@@ -11,8 +11,15 @@
 import datetime, getpass, os, sys, time
 
 # password setup
-setup = open ('./setup/' + 'setup')
-password = setup.read()
+if os.path.exists('./setup/'):
+    setup = open ('./setup/' + 'setup')
+    password = setup.read()
+else:
+    os.makedirs('./setup/')
+    setup = open ('./setup/' + 'setup', 'w')
+    setup.write ('')
+    setup = open ('./setup/' + 'setup')
+    password = setup.read()
 
 # set time
 now = time.localtime()
@@ -20,14 +27,14 @@ year = now.tm_year
 yday = now.tm_yday
     
 # print title
-title1 = 'NOTENAL v.0.1.6'
-print '\n''\n', title1
-print '='*len(title1), '\n'
+title = 'NOTENAL v.0.1.6'
+print '\n''\n', title
+print '='*len(title), '\n'
 
 # rot13 encoded password
 while True:
     pw = getpass.getpass ('Password: ')
-    if pw.encode ('rot13') == (password):        
+    if pw.encode ('rot13') == (password):
         print '\n''Correct!''\n''\n'
         break    
     else:        
@@ -72,9 +79,9 @@ while True:
         else:
             os.makedirs('./notes/')            
             file = open ('./notes/' + filename, 'a')            
-            file.write ('\n''\n' + datetime.datetime.now().ctime() + '\n')            
-            file.write ('='*len(under1))            
-            file.write ('\n' + note + '\n')            
+            file.write ('\n''\n' + datetime.datetime.now().ctime() + '\n')
+            file.write ('='*len(under1)) 
+            file.write ('\n' + note + '\n')
             file.close()
 
         # print output
@@ -91,14 +98,15 @@ while True:
     # list files
     if menu == "L":
         try:
-            print '\n''-----------------------------------------------''\n'                    
+            print '\n''-----------------------------------------------''\n'
             for list_files in os.listdir('./notes/'):
                 print list_files
-                print '='*len(list_files)            
+                print '='*len(list_files)
             print '\n''\n''-----------------------------------------------'
         except:
             if not os.path.exists('./notes/'):
-                print 'No files found!''\n''\n'           
+                print 'No files found!''\n'
+                print '\n''-----------------------------------------------'
 
     # quit
     if menu == "Q":
