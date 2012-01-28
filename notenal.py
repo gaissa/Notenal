@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
-## Notenal v.0.1.6
+## Notenal v.0.1.7
 
 ##  Simple command-line notetaking application
-##  Copyright (C) 2011 sugardrunk <http://sugardrunk.devio.us>
+##  Copyright (C) 2012 sugardrunk <http://sugardrunk.devio.us>
 
 
 import datetime, getpass, os, sys, time
@@ -21,13 +21,14 @@ else:
     setup = open ('./setup/' + 'setup')
     password = setup.read()
 
-# set time variables
+# set time
 now = time.localtime()
-year = now.tm_year 
-yday = now.tm_yday
-    
+
+# set line
+separator = '-'*48
+
 # print title
-title = 'NOTENAL v.0.1.6'
+title = 'NOTENAL v.0.1.7'
 print '\n''\n', title
 print '='*len(title), '\n'
 
@@ -35,10 +36,10 @@ print '='*len(title), '\n'
 while True:
     pw = getpass.getpass ('Password: ')
     if pw.encode ('rot13') == (password):
-        print '\n''Correct!''\n''\n'
+        print '\n''Password correct!''\n''\n'
         break
     else:
-        print '\n''Wrong password, try again!''\n'
+        print '\n''Wrong password, try again!''\n''\n'
 
 # menu
 while True:
@@ -49,15 +50,15 @@ while True:
         
         # read file
         readfile = raw_input ('\n''FILE NAME: ')
-        print '\n''-----------------------------------------------''\n'
+        print '\n' + separator + '\n'
         print (readfile), 'CONTENTS:'
         try:
             file = open ('./notes/' + readfile)
             print file.read()
-            print '\n''-----------------------------------------------'
+            print '\n' + separator
             file.close()
         except:
-            print '\n''\n''-----------------------------------------------'
+            print '\n''\n' + separator
             print 'File not found!''\n''\n'
 
     # write
@@ -85,14 +86,14 @@ while True:
             file.close()
 
         # read
-        print '\n''-----------------------------------------------''\n'
+        print '\n' + separator + '\n'
         print (filename), 'CONTENTS:'
         file = open ('./notes/' + filename)
         print file.read()
         file.close()
 
         # print character count
-        print '\n''-----------------------------------------------'
+        print '\n' + separator + '\n'
         print 'Your note was',len(note), 'character(s) in length... \n''\n'
 
     # list
@@ -100,18 +101,17 @@ while True:
 
         # list files
         try:
-            print '\n''-----------------------------------------------''\n'
+            print '\n' + separator
             for list_files in os.listdir('./notes/'):
-                print list_files
+                print ('\n' + list_files)
                 print '='*len(list_files)
-            print '\n''\n''-----------------------------------------------'
+            print '\n''\n' + separator + '\n'
         except:
             if not os.path.exists('./notes/'):
-                print 'No files found!''\n'
-                print '\n''-----------------------------------------------'
+                print '\n''No files found!''\n'
+                print '\n' + separator + '\n'
 
     # quit
     if menu == "Q":
-        print '\n''-----------------------------------------------'
-        print 'Notenal closing...''\n''\n'
+        print '\n''Notenal closing...''\n'
         sys.exit(0)
