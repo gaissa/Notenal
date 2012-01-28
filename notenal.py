@@ -21,7 +21,7 @@ else:
     setup = open ('./setup/' + 'setup')
     password = setup.read()
 
-# set time
+# set time variables
 now = time.localtime()
 year = now.tm_year 
 yday = now.tm_yday
@@ -31,13 +31,13 @@ title = 'NOTENAL v.0.1.6'
 print '\n''\n', title
 print '='*len(title), '\n'
 
-# rot13 encoded password
+# ask password
 while True:
     pw = getpass.getpass ('Password: ')
     if pw.encode ('rot13') == (password):
         print '\n''Correct!''\n''\n'
-        break    
-    else:        
+        break
+    else:
         print '\n''Wrong password, try again!''\n'
 
 # menu
@@ -47,8 +47,8 @@ while True:
     # read
     if menu == "R":
         
-        # read file        
-        readfile = raw_input ('\n''FILE NAME: ')        
+        # read file
+        readfile = raw_input ('\n''FILE NAME: ')
         print '\n''-----------------------------------------------''\n'
         print (readfile), 'CONTENTS:'
         try:
@@ -59,32 +59,32 @@ while True:
         except:
             print '\n''\n''-----------------------------------------------'
             print 'File not found!''\n''\n'
-        
+
     # write
-    if menu == "W":        
+    if menu == "W":
         
-        # set name        
-        filename = raw_input ('\n''FILE NAME: ')        
+        # set name
+        filename = raw_input ('\n''FILE NAME: ')
         note = raw_input ('\n''YOUR NOTE: ')
         print ('\n''OUTPUT TO'), (filename) + ':', (note)
         under1 = (datetime.datetime.now().ctime())
 
         # write to file
-        if os.path.exists('./notes/'):            
-            file = open ('./notes/' + filename, 'a')            
-            file.write ('\n''\n' + datetime.datetime.now().ctime() + '\n')            
-            file.write ('='*len(under1))            
-            file.write ('\n' + note + '\n')            
+        if os.path.exists('./notes/'):
+            file = open ('./notes/' + filename, 'a')
+            file.write ('\n''\n' + datetime.datetime.now().ctime() + '\n')
+            file.write ('='*len(under1))
+            file.write ('\n' + note + '\n')
             file.close()
         else:
-            os.makedirs('./notes/')            
-            file = open ('./notes/' + filename, 'a')            
+            os.makedirs('./notes/')
+            file = open ('./notes/' + filename, 'a')
             file.write ('\n''\n' + datetime.datetime.now().ctime() + '\n')
-            file.write ('='*len(under1)) 
+            file.write ('='*len(under1))
             file.write ('\n' + note + '\n')
             file.close()
 
-        # print output
+        # read
         print '\n''-----------------------------------------------''\n'
         print (filename), 'CONTENTS:'
         file = open ('./notes/' + filename)
@@ -95,8 +95,10 @@ while True:
         print '\n''-----------------------------------------------'
         print 'Your note was',len(note), 'character(s) in length... \n''\n'
 
-    # list files
+    # list
     if menu == "L":
+
+        # list files
         try:
             print '\n''-----------------------------------------------''\n'
             for list_files in os.listdir('./notes/'):
