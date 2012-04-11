@@ -8,12 +8,12 @@
 
 
 import getpass, sys, os
-
+import base64
 # get password
 password = getpass.getpass ('\n''SET PASSWORD: ')
 
 # encode password
-encoded_password = password.encode('rot13') 
+encoded_password = base64.b64encode(password)
 
 # write encoded password to file
 if os.path.exists('./setup/'):

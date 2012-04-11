@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 ## Notenal v.0.1.7
 
 ##  Simple command-line notetaking application
@@ -9,7 +8,7 @@
 
 
 import datetime, getpass, os, sys, time
-
+import base64
 # password setup
 if os.path.exists('./setup/'):
     setup = open ('./setup/' + 'setup')
@@ -33,15 +32,22 @@ print '\n''\n', title
 print '='*len(title), '\n'
 
 # ask password
-while True:
+attempt=1
+max_attempts=3
+while (attempt<max_attempts+1):
     pw = getpass.getpass ('Password: ')
-    if pw.encode ('rot13') == (password):
+    if base64.b64encode (pw) == (password):
         print '\n''Password correct!''\n''\n'
         break
     else:
-        print '\n''Wrong password, try again!''\n''\n'
+        print '\n''Wrong password, You have',(max_attempts-attempt),'attempt(s) left \n''\n'
+	attempt = attempt + 1
 
 # menu
+if (attempt>max_attempts):
+ print '\n\nYou have exceeded the maximum number of attempts\n\nQuitting ..... \n\n'
+ sys.exit(0)
+
 while True:
     menu = raw_input('[R]ead, [W]rite, [L]ist files or [Q]uit?: ')
 
