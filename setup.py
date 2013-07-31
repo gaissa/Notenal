@@ -3,7 +3,7 @@
 
 ## Notenal v.0.1.8
 
-##  Simple command-line notetaking application
+##  A simple command-line notetaking application
 ##  Copyright (C) 2012 sugardrunk <http://sugardrunk.devio.us>
 
 
