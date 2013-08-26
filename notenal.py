@@ -5,7 +5,7 @@
 ## Notenal v.0.1.8
 
 ##  A Simple command-line notetaking application
-##  Copyright (C) 2012 sugardrunk <http://sugardrunk.devio.us>
+##  Copyright (C) 2012 sugardrunk <http://koti.tamk.fi/~c1jkahko/>
 
 
 import base64
