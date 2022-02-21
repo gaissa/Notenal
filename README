@@ -1,8 +1,8 @@
-Notenal v.0.1.8
+Notenal v.0.1.9
 
-A simple command-line notetaking application
+A simple command-line notetaking application written back in the day
 
-    Copyright (C) 2012 sugardrunk <http://koti.tamk.fi/~c1jkahko/>
+    Copyright (C) 2012-2022 gaissa <https://github.com/gaissa>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
