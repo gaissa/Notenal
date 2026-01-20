@@ -1,151 +1,280 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
-## Notenal v.0.1.9
+## Notenal v.0.2.0
 
 ##  A Simple command-line notetaking application
-##  Copyright (C) 2012-2022 gaissa <https://github.com/gaissa>
+##  Copyright (C) 2012-2026 gaissa <https://github.com/gaissa>
 
 
-import base64
+import hashlib
 import datetime
 import getpass
 import os
 import sys
 import time
+import base64
+import json
+import argon2.low_level
+from cryptography.fernet import Fernet
 
-def main():
-    # set time
-    now = time.localtime()
+class Notenal:
+    def __init__(self):
+        self.notes_dir = './notenal_notes/'
+        self.db_file = 'data.enc'
+        self.setup_dir = './notenal_setup/'
+        self.setup_file = 'notenal_setup'
+        self.separator = '-' * 48
+        self.title = 'NOTENAL v.0.2.0'
+        self.fernet = None
+        self.db = {} # Format: {filename: {content: str, timestamp: str}}
 
-    # set max attempt(s)
-    attempt = 1
-    max_attempts = 3
-
-    # set separator line
-    separator = '-' * 48
-
-    # print title
-    title = 'NOTENAL v.0.1.9'
-    print '\n\n', title
-    print '=' * len(title) + '\n'
-
-    # ask password
-    while (attempt <= max_attempts):
-        pw = getpass.getpass('Password: ')
-        if base64.b64encode(pw) == (password):
-            print '\nPassword correct! Welcome to Notenal!'
-            break
+    def run(self):
+        """Main entry point."""
+        self.print_header()
+        if self.authenticate():
+            self.load_db()
+            self.migrate_legacy_files()
+            self.main_menu()
         else:
-            print '\nIncorrect password, ' \
-            'you have', (max_attempts - attempt), 'attempt(s) left\n\n'
-        attempt = attempt + 1
+            self.closing_message("Authentication failed.")
 
-    # quit after max attempts
-    if (attempt > max_attempts):
-        print 'You have exceeded ' \
-        'the maximum number of attempts!\n\nNotenal closing...\n\n'
-        sys.exit(0)
+    def print_header(self):
+        print('\n\n', self.title)
+        print('=' * len(self.title) + '\n')
 
-    def readNotes():
-        # read file
-        readfile = raw_input('\nFILE NAME: ')
-        try:
-            file = open('./notenal_notes/' + readfile)
-            print '\n' + separator + '\n'
-            print (readfile), 'CONTENTS:'
-            print file.read()
-            print separator
-            file.close()
-        except:
-            print '\nFile does not exist!'
+    def authenticate(self):
+        """Check if password is correct and derive encryption key using Argon2id."""
+        setup_path = os.path.join(self.setup_dir, self.setup_file)
+        if not os.path.exists(setup_path):
+            print('\nNo password set! Run setup.py to set one!\n')
+            return False
 
-    def writeNotes():
-        # set file name
-        filename = raw_input('\nFILE NAME: ')
+        with open(setup_path, 'r') as f:
+            stored_data = f.read().strip()
 
-        if filename is '':
-            print '\nFilename cannot be empty! Set a name for your note!'
+        # Handle legacy or new format
+        if '$' in stored_data:
+            salt_hex, stored_key_hex = stored_data.split('$')
+            salt = bytes.fromhex(salt_hex)
         else:
-            # get note and timestamp
-            note = raw_input('\nYOUR NOTE: ')
-            time = (datetime.datetime.now().ctime())
+            print('\nLegacy password format detected. Please run setup.py to update security settings!\n')
+            return False
 
-            # write to file
-            if os.path.exists('./notenal_notes/'):
-                file = open('./notenal_notes/' + filename, 'a')
-                file.write('\n\n' + time + '\n')
-                file.write('=' * len(time))
-                file.write('\n' + note + '\n')
-                file.close()
+        attempt = 1
+        max_attempts = 3
+
+        while attempt <= max_attempts:
+            pw = getpass.getpass('Password: ')
+            
+            # Derive 32-byte key (raw bytes) using Argon2id
+            # Must match parameters in setup.py
+            try:
+                raw_key = argon2.low_level.hash_secret_raw(
+                    secret=pw.encode('utf-8'),
+                    salt=salt,
+                    time_cost=2,
+                    memory_cost=65536,
+                    parallelism=2,
+                    hash_len=32,
+                    type=argon2.low_level.Type.ID
+                )
+            except Exception as e:
+                print(f"Error during key derivation: {e}")
+                return False
+            
+            if raw_key.hex() == stored_key_hex:
+                print('\nPassword correct! Welcome to Notenal!')
+                # Store the Fernet instance for this session
+                fernet_key = base64.urlsafe_b64encode(raw_key)
+                self.fernet = Fernet(fernet_key)
+                return True
             else:
-                os.makedirs('./notenal_notes/')
-                file = open('./notenal_notes/' + filename, 'a')
-                file.write('\n\n' + time + '\n')
-                file.write('=' * len(time))
-                file.write('\n' + note + '\n')
-                file.close()
+                print(f'\nIncorrect password, you have {max_attempts - attempt} attempt(s) left\n')
+            attempt += 1
 
-                # read file
-                print '\n' + separator + '\n'
-                print (filename), 'CONTENTS:'
-                file = open('./notenal_notes/' + filename)
-                print file.read()
-                file.close()
+        print('You have exceeded the maximum number of attempts!')
+        return False
 
-                # print character count
-                print '\n' + separator + '\n'
-                print 'Your note was', len(note), 'character(s) in length...'
+    def load_db(self):
+        """Load and decrypt the database."""
+        db_path = os.path.join(self.notes_dir, self.db_file)
+        if not os.path.exists(db_path):
+            self.db = {}
+            return
 
-    def listNotes():
-        if len(os.listdir('./notenal_notes/')) != 0:
-            print '\n' + separator
-            for list_files in os.listdir('./notenal_notes/'):
-                print ('\n' + list_files)
-                print '=' * len(list_files)
-            print '\n' + separator
-        else:
-            print '\nNo files found!'
-
-    def deleteNotes():
-        filename = raw_input('\nFILE NAME: ')
         try:
-            os.remove('./notenal_notes/' + filename)
-            print('\nFile ' + filename + ' deleted!')
-        except:
-            print '\nFile does not exist!'
+            with open(db_path, 'rb') as f:
+                encrypted_data = f.read()
+            
+            decrypted_data = self.fernet.decrypt(encrypted_data)
+            self.db = json.loads(decrypted_data.decode('utf-8'))
+        except Exception as e:
+            print(f"\n[ERROR] Could not load database: {e}")
+            self.db = {}
 
-    def quitNotenal():
-        print '\nNotenal closing...\n\n'
+    def save_db(self):
+        """Encrypt and save the database."""
+        if not os.path.exists(self.notes_dir):
+            os.makedirs(self.notes_dir)
+            
+        db_path = os.path.join(self.notes_dir, self.db_file)
+        
+        try:
+            json_data = json.dumps(self.db)
+            encrypted_data = self.fernet.encrypt(json_data.encode('utf-8'))
+            
+            with open(db_path, 'wb') as f:
+                f.write(encrypted_data)
+        except Exception as e:
+            print(f"\n[ERROR] Could not save database: {e}")
+
+    def migrate_legacy_files(self):
+        """Import legacy files into the DB and delete them."""
+        if not os.path.exists(self.notes_dir):
+            return
+
+        migrated_count = 0
+        for filename in os.listdir(self.notes_dir):
+            if filename == self.db_file or filename.startswith('.'):
+                continue
+            
+            filepath = os.path.join(self.notes_dir, filename)
+            if os.path.isfile(filepath):
+                try:
+                    with open(filepath, 'rb') as f:
+                        content_bytes = f.read()
+                    
+                    # Try decrypting (if it was from intermediate encrypted version)
+                    try:
+                        content = self.fernet.decrypt(content_bytes).decode('utf-8')
+                    except Exception:
+                        # Fallback to plain text
+                        try:
+                            content = content_bytes.decode('utf-8')
+                        except UnicodeDecodeError:
+                            content = "<Binary/Corrupted Data>"
+                    
+                    # Add to DB
+                    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).ctime()
+                    self.db[filename] = {
+                        'content': content,
+                        'timestamp': timestamp
+                    }
+                    migrated_count += 1
+                    
+                    # Delete legacy file
+                    os.remove(filepath)
+                    
+                except Exception as e:
+                    print(f"Failed to migrate {filename}: {e}")
+        
+        if migrated_count > 0:
+            print(f"\n[INFO] Migrated {migrated_count} legacy notes to encrypted database.")
+            self.save_db()
+
+    def closing_message(self, message="Notenal closing..."):
+        print(f'\n{message}\n\n')
         sys.exit(0)
 
-    # run menu
-    while True:
-        menu = raw_input('\n\n\033[1m[R]\033[0mead \033[96m-\033[0m ' \
-                             '\033[1m[W]\033[0mrite \033[96m-\033[0m ' \
-                             '\033[1m[L]\033[0mist \033[96m-\033[0m ' \
-                             '\033[1m[D]\033[0melete \033[96m-\033[0m ' \
-                             '\033[1m[Q]\033[0muit: ')
-        if menu == "R":
-            readNotes()
+    def read_notes(self):
+        filename = input('\nFILE NAME: ').strip()
+        
+        if not filename:
+            print('\nFilename cannot be empty!')
+            return
 
-        if menu == "W":
-            writeNotes()
+        if filename in self.db:
+            note = self.db[filename]
+            print('\n' + self.separator + '\n')
+            print(f'{filename} CONTENTS (Last mod: {note.get("timestamp", "Unknown")}):')
+            print(note['content'])
+            print(self.separator)
+        else:
+            print('\nFile does not exist!')
 
-        if menu == "L":
-            listNotes()
+    def write_notes(self):
+        filename = input('\nFILE NAME: ').strip()
 
-        if menu == "D":
-            deleteNotes()
+        if not filename:
+            print('\nFilename cannot be empty! Set a name for your note!')
+            return
 
-        if menu == "Q":
-            quitNotenal()
+        note_content = input('\nYOUR NOTE: ')
+        timestamp = datetime.datetime.now().ctime()
+        
+        # Append logic? OLD Notenal appended.
+        # If file exists, we append.
+        if filename in self.db:
+            old_content = self.db[filename]['content']
+            # Add separator for append
+            new_content = old_content + f'\n\n{timestamp}\n{"=" * len(timestamp)}\n{note_content}\n'
+        else:
+            new_content = f'\n\n{timestamp}\n{"=" * len(timestamp)}\n{note_content}\n'
 
-# get password and run the app
-if os.path.exists('./notenal_setup/'):
-    setup = open('./notenal_setup/' + 'notenal_setup')
-    password = setup.read()
-    main()
-else:
-    print '\nNo password set! Run setup.py to set one!\n'
+        self.db[filename] = {
+            'content': new_content,
+            'timestamp': timestamp
+        }
+        
+        self.save_db()
+
+        # Verify
+        print('\n' + self.separator + '\n')
+        print(f'{filename} CONTENTS:')
+        print(new_content)
+        print('\n' + self.separator + '\n')
+        print(f'Your note was {len(note_content)} character(s) in length...')
+
+    def list_notes(self):
+        if self.db:
+            print('\n' + self.separator)
+            for filename, data in self.db.items():
+                timestamp = data.get('timestamp', 'Unknown Date')
+                # Try parsing timestamp to pretty format if it's ctime
+                try:
+                    ts_date = datetime.datetime.strptime(timestamp, "%a %b %d %H:%M:%S %Y")
+                    date_str = ts_date.strftime('%Y-%m-%d %H:%M')
+                except ValueError:
+                    date_str = timestamp
+
+                display_str = f'{filename}  [{date_str}]'
+                print('\n' + display_str)
+                print('=' * len(display_str))
+            print('\n' + self.separator)
+        else:
+            print('\nNo notes found!')
+
+    def delete_notes(self):
+        filename = input('\nFILE NAME: ')
+        if filename in self.db:
+            del self.db[filename]
+            self.save_db()
+            print(f'\nFile {filename} deleted!')
+        else:
+            print('\nFile does not exist!')
+
+    def clear_screen(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+    def main_menu(self):
+        while True:
+            menu = input('\n\n[R]ead - [W]rite - [L]ist - [D]elete - [C]lear - [Q]uit: ').upper()
+            
+            if menu == "R":
+                self.read_notes()
+            elif menu == "W":
+                self.write_notes()
+            elif menu == "L":
+                self.list_notes()
+            elif menu == "D":
+                self.delete_notes()
+            elif menu == "C":
+                self.clear_screen()
+            elif menu == "Q":
+                self.closing_message()
+
+if __name__ == "__main__":
+    app = Notenal()
+    app.run()
