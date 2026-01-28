@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-## Notenal v.0.2.0
+## Notenal v.0.29
 
 ##  A simple command-line notetaking application
 ##  Copyright (C) 2012-2026 sugardrunk <https://github.com/gaissa>

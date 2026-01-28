@@ -1,4 +1,4 @@
-Notenal v.0.2.0
+# NOTENAL v.0.29
 
 A simple command-line notetaking application.
 
@@ -12,6 +12,8 @@ A simple command-line notetaking application.
 FEATURES:
     * Strong Security: Argon2id password hashing + AES-128 (Fernet) note encryption.
     * Privacy: All notes stored in a single encrypted database (metadata hidden).
+    * Search: Quickly find notes by keyword in title or content.
+    * External Editor Support: Write notes using your system's default editor (configurable).
     * Python 3 compatible.
 
 HOW TO RUN:
@@ -23,3 +25,15 @@ HOW TO RUN:
 
     3. Run the application:
        python notenal.py
+
+CONFIGURATION:
+    You can configure your preferred editor in `notenal_setup/config.json` after running the app once.
+    Example `config.json`:
+    {
+        "editor": "system" 
+    }
+    
+    Options for "editor":
+    - "system": Uses your OS default editor (EDITOR env var or notepad/nano).
+    - "none": Uses the built-in simple line input.
+    - "code", "vim", "notepad": Uses a specific command.
