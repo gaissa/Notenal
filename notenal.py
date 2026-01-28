@@ -35,7 +35,6 @@ class Notenal:
         self.print_header()
         if self.authenticate():
             self.load_db()
-            self.migrate_legacy_files()
             self.main_menu()
         else:
             self.closing_message("Authentication failed.")
@@ -130,49 +129,7 @@ class Notenal:
         except Exception as e:
             print(f"\n[ERROR] Could not save database: {e}")
 
-    def migrate_legacy_files(self):
-        """Import legacy files into the DB and delete them."""
-        if not os.path.exists(self.notes_dir):
-            return
 
-        migrated_count = 0
-        for filename in os.listdir(self.notes_dir):
-            if filename == self.db_file or filename.startswith('.'):
-                continue
-            
-            filepath = os.path.join(self.notes_dir, filename)
-            if os.path.isfile(filepath):
-                try:
-                    with open(filepath, 'rb') as f:
-                        content_bytes = f.read()
-                    
-                    # Try decrypting (if it was from intermediate encrypted version)
-                    try:
-                        content = self.fernet.decrypt(content_bytes).decode('utf-8')
-                    except Exception:
-                        # Fallback to plain text
-                        try:
-                            content = content_bytes.decode('utf-8')
-                        except UnicodeDecodeError:
-                            content = "<Binary/Corrupted Data>"
-                    
-                    # Add to DB
-                    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).ctime()
-                    self.db[filename] = {
-                        'content': content,
-                        'timestamp': timestamp
-                    }
-                    migrated_count += 1
-                    
-                    # Delete legacy file
-                    os.remove(filepath)
-                    
-                except Exception as e:
-                    print(f"Failed to migrate {filename}: {e}")
-        
-        if migrated_count > 0:
-            print(f"\n[INFO] Migrated {migrated_count} legacy notes to encrypted database.")
-            self.save_db()
 
     def closing_message(self, message="Notenal closing..."):
         print(f'\n{message}\n\n')
